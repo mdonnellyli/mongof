@@ -10,7 +10,8 @@ import (
 )
 
 var (
-	url = flag.String("url", "localhost", "the mongo url to dial")
+	url   = flag.String("url", "localhost", "the mongo url to dial")
+	query = flag.String("query", "{}", "the query")
 )
 
 func main() {
@@ -18,6 +19,7 @@ func main() {
 	tidy.Configure().LogFromLevel(tidy.DEBUG).To(tidy.Console).BuildDefault()
 
 	url := *url
+	query := *query
 
 	log := tidy.GetLogger()
 	session, err := mgo.Dial(url)
@@ -56,7 +58,13 @@ func main() {
 	}
 
 	oplog := localdb.C("oplog.$main")
-	cursor := oplog.Find(nil).Tail(-1)
+
+	queryDoc := make(bson.M)
+	if err := json.Unmarshal([]byte(query), &queryDoc); err != nil {
+		log.With("error", err).Fatal("query parsing failed")
+	}
+
+	cursor := oplog.Find(queryDoc).Tail(-1)
 
 	var document bson.M
 	for cursor.Next(&document) {
