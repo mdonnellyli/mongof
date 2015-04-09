@@ -26,7 +26,9 @@ func main() {
 		log.With("error", err).With("url", url).Fatal("failed to connect")
 	}
 
-	localdb := session.DB("local")
+	if err := session.Ping(); err != nil {
+		log.With("error", err).With("url", url).Fatal("failed to ping")
+	}
 
 	localdb := session.DB("local")
 	verifyOplog := func() (bool, error) {
