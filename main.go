@@ -2,22 +2,33 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 
 	"github.com/pjvds/tidy"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
+var (
+	url = flag.String("url", "localhost", "the mongo url to dial")
+)
+
 func main() {
+	flag.Parse()
+	tidy.Configure().LogFromLevel(tidy.DEBUG).To(tidy.Console).BuildDefault()
+
+	url := *url
+
 	log := tidy.GetLogger()
-	session, err := mgo.Dial("localhost")
+	session, err := mgo.Dial(url)
 
 	if err != nil {
-		log.With("error", err).With("url", "localhost").Fatal("failed to connect")
+		log.With("error", err).With("url", url).Fatal("failed to connect")
 	}
 
 	localdb := session.DB("local")
 
+	localdb := session.DB("local")
 	verifyOplog := func() (bool, error) {
 		collections, err := localdb.CollectionNames()
 
